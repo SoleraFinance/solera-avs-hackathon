@@ -1,12 +1,3 @@
-[submodule "contracts/lib/openzeppelin-contracts"]
-	path = avs/contracts/lib/openzeppelin-contracts
-	url = https://github.com/OpenZeppelin/openzeppelin-contracts
-[submodule "contracts/lib/eigenlayer-middleware"]
-	path = avs/contracts/lib/eigenlayer-middleware
-	url = https://github.com/layr-Labs/eigenlayer-middleware
-[submodule "contracts/lib/forge-std"]
-	path = avs/contracts/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
 [submodule "avs/contracts/lib/openzeppelin-contracts"]
 	path = avs/contracts/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
