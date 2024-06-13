@@ -8,6 +8,11 @@ async function main() {
     const spUSDToken = await SPUSDToken.deploy(SOLERA_SERVICE_ADDRESS);
     await spUSDToken.waitForDeployment();
     console.log("SPUSD is deployed at ", await spUSDToken.getAddress());
+
+    const soleraContractFactory = await ethers.getContractFactory("SoleraContract")
+    const soleraContract = await soleraContractFactory.deploy();
+    await soleraContract.waitForDeployment();
+    console.log("SoleraContract is deployed at ", await soleraContract.getAddress());
 }
 
 // We recommend this pattern to be able to use async/await everywhere
