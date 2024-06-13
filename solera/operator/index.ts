@@ -10,16 +10,23 @@ const serviceManagerABI = [
     "function submitTask(uint256 _srcChainId, uint256 _dstChainId, address _sender, address _recipient, uint256 _amount)"
 ];
 
+const soleraContractABI = [
+    "event NewLock(uint256 _destinationChainid, address _recipient, uint256 _amount)",
+    "function lockCollateral(uint256 _destinationChainid, address _recipient) payable"
+];
+
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const delegationManagerAddress = process.env.DELEGATION_MANAGER_ADDRESS!;
 const contractAddress = process.env.CONTRACT_ADDRESS!;
+const serviceManagerAddress = process.env.SERVICE_MANAGER_ADDRESS!;
 const stakeRegistryAddress = process.env.STAKE_REGISTRY_ADDRESS!;
 const avsDirectoryAddress = process.env.AVS_DIRECTORY_ADDRESS!;
 
 const delegationManager = new ethers.Contract(delegationManagerAddress, delegationABI, wallet);
-const serviceManager = new ethers.Contract(contractAddress, serviceManagerABI, wallet);
+const serviceManager = new ethers.Contract(serviceManagerAddress, serviceManagerABI, wallet);
+const contract = new ethers.Contract(contractAddress, soleraContractABI, wallet);
 const registryContract = new ethers.Contract(stakeRegistryAddress, registryABI, wallet);
 const avsDirectory = new ethers.Contract(avsDirectoryAddress, avsDirectoryABI, wallet);
 
@@ -45,7 +52,7 @@ const registerOperator = async () => {
     // Calculate the digest hash using the avsDirectory's method
     const digestHash = await avsDirectory.calculateOperatorAVSRegistrationDigestHash(
         wallet.address, 
-        serviceManager.address, 
+        serviceManagerAddress, 
         salt, 
         expiry
     );
@@ -66,9 +73,19 @@ const registerOperator = async () => {
 };
 
 const monitorNewTasks = async () => {
+    contract.on("NewLock", async(dstChainId: BigInt, recipient: string, amount: BigInt) => {
+        console.log(`New lock: chainId ${dstChainId.toString()}, recipient - ${recipient}, amount - ${amount.toString()}`);
+        // TODO:
+        const srcChainId = 1;
+        const sender = "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB";
+
+        const tx = await serviceManager.submitTask(srcChainId, dstChainId, sender, recipient, amount);
+        await tx.wait();
+    });
+
+    // TODO: remove
     serviceManager.on("SubmittedTask", async(srcChainId: BigInt, dstChainId: BigInt, sender: string, recipient: string, amount: BigInt) => {
         console.log("SubmittedTask", srcChainId.toString(), dstChainId.toString(), sender, recipient, amount.toString());
-        // TODO: 
     });
 
     console.log("Monitoring for new tasks...");
