@@ -9,7 +9,7 @@ CHALLENGER_ECDSA_PRIV_KEY=0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9
 
 CHAINID=31337
 # Make sure to update this if the strategy address changes
-# check in contracts/script/output/${CHAINID}/hello_world_avs_deployment_output.json
+# check in contracts/script/output/${CHAINID}/solera_service_avs_deployment_output.json
 STRATEGY_ADDRESS=0x7a2088a1bFc9d81c55368AE168C2C02570cB814F
 DEPLOYMENT_FILES_DIR=contracts/script/output/${CHAINID}
 
@@ -23,15 +23,15 @@ build-contracts: ## builds all contracts
 deploy-eigenlayer-contracts-to-anvil-and-save-state: ## Deploy eigenlayer
 	./utils/anvil/deploy-eigenlayer-save-anvil-state.sh
 
-deploy-hello-world-contracts-to-anvil-and-save-state: ## Deploy avs
+deploy-solera-service-contracts-to-anvil-and-save-state: ## Deploy avs
 	./utils/anvil/deploy-avs-save-anvil-state.sh
 
-deploy-contracts-to-anvil-and-save-state: deploy-eigenlayer-contracts-to-anvil-and-save-state deploy-hello-world-contracts-to-anvil-and-save-state ## deploy eigenlayer, shared avs contracts, and inc-sq contracts (part of quickstart)
+deploy-contracts-to-anvil-and-save-state: deploy-eigenlayer-contracts-to-anvil-and-save-state deploy-solera-service-contracts-to-anvil-and-save-state ## deploy eigenlayer, shared avs contracts, and inc-sq contracts (part of quickstart)
 
 start-chain-with-contracts-deployed: ## starts anvil from a saved state file (with el and avs contracts deployed)
 	./utils/anvil/start-anvil-chain-with-el-and-avs-deployed.sh
 
-# start-chain-and-deploy-hello-world-avs: build-contracts deploy-contracts-to-anvil-and-save-state start-anvil-chain-with-el-and-avs-deployed
+# start-chain-and-deploy-solera-service-avs: build-contracts deploy-contracts-to-anvil-and-save-state start-anvil-chain-with-el-and-avs-deployed
 
 clean-deployments:
 	./utils/anvil/clean-deployments.sh

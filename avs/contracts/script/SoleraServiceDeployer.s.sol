@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 import "@eigenlayer/contracts/permissions/PauserRegistry.sol";
 import {IDelegationManager} from "@eigenlayer/contracts/interfaces/IDelegationManager.sol";
@@ -15,7 +16,7 @@ import {ECDSAStakeRegistry} from "@eigenlayer-middleware/src/unaudited/ECDSAStak
 import {Quorum, StrategyParams} from "@eigenlayer-middleware/src/interfaces/IECDSAStakeRegistryEventsAndErrors.sol";
 import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
-import {HelloWorldServiceManager, IServiceManager} from "../src/HelloWorldServiceManager.sol";
+import {SoleraServiceManager, IServiceManager} from "../src/SoleraServiceManager.sol";
 import "../src/ERC20Mock.sol";
 
 import {Utils} from "./utils/Utils.sol";
@@ -26,22 +27,22 @@ import "forge-std/StdJson.sol";
 import "forge-std/console.sol";
 
 // # To deploy and verify our contract
-// forge script script/HelloWorldDeployer.s.sol:HelloWorldDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
-contract HelloWorldDeployer is Script, Utils {
+// forge script script/SoleraServiceDeployer.s.sol:SoleraServiceDeployer --rpc-url $RPC_URL  --private-key $PRIVATE_KEY --broadcast -vvvv
+contract SoleraServiceDeployer is Script, Utils {
     // ERC20 and Strategy: we need to deploy this erc20, create a strategy for it, and whitelist this strategy in the strategymanager
 
     ERC20Mock public erc20Mock;
     StrategyBaseTVLLimits public erc20MockStrategy;
 
     // Hello World contracts
-    ProxyAdmin public helloWorldProxyAdmin;
-    PauserRegistry public helloWorldPauserReg;
+    ProxyAdmin public soleraServiceProxyAdmin;
+    PauserRegistry public soleraServicePauserReg;
     
     ECDSAStakeRegistry public stakeRegistryProxy;
     ECDSAStakeRegistry public stakeRegistryImplementation;
 
-    HelloWorldServiceManager public helloWorldServiceManagerProxy;
-    HelloWorldServiceManager public helloWorldServiceManagerImplementation;
+    SoleraServiceManager public soleraServiceManagerProxy;
+    SoleraServiceManager public soleraServiceManagerImplementation;
 
     function run() external {
         // Eigenlayer contracts
@@ -85,8 +86,8 @@ contract HelloWorldDeployer is Script, Utils {
                 )
             );
 
-        address helloWorldCommunityMultisig = msg.sender;
-        address helloWorldPauser = msg.sender;
+        address soleraServiceCommunityMultisig = msg.sender;
+        address soleraServicePauser = msg.sender;
 
         vm.startBroadcast();
         _deployErc20AndStrategyAndWhitelistStrategy(
@@ -95,12 +96,12 @@ contract HelloWorldDeployer is Script, Utils {
             baseStrategyImplementation,
             strategyManager
         );
-        _deployHelloWorldContracts(
+        _deploySoleraServiceContracts(
             delegationManager,
             avsDirectory,
             erc20MockStrategy,
-            helloWorldCommunityMultisig,
-            helloWorldPauser
+            soleraServiceCommunityMultisig,
+            soleraServicePauser
         );
         vm.stopBroadcast();
     }
@@ -139,12 +140,12 @@ contract HelloWorldDeployer is Script, Utils {
         );
     }
 
-    function _deployHelloWorldContracts(
+    function _deploySoleraServiceContracts(
         IDelegationManager delegationManager,
         IAVSDirectory avsDirectory,
         IStrategy strat,
-        address helloWorldCommunityMultisig,
-        address helloWorldPauser
+        address soleraServiceCommunityMultisig,
+        address soleraServicePauser
     ) internal {
         // Adding this as a temporary fix to make the rest of the script work with a single strategy
         // since it was originally written to work with an array of strategies
@@ -152,16 +153,16 @@ contract HelloWorldDeployer is Script, Utils {
         uint numStrategies = deployedStrategyArray.length;
 
         // deploy proxy admin for ability to upgrade proxy contracts
-        helloWorldProxyAdmin = new ProxyAdmin();
+        soleraServiceProxyAdmin = new ProxyAdmin();
 
         // deploy pauser registry
         {
             address[] memory pausers = new address[](2);
-            pausers[0] = helloWorldPauser;
-            pausers[1] = helloWorldCommunityMultisig;
-            helloWorldPauserReg = new PauserRegistry(
+            pausers[0] = soleraServicePauser;
+            pausers[1] = soleraServiceCommunityMultisig;
+            soleraServicePauserReg = new PauserRegistry(
                 pausers,
-                helloWorldCommunityMultisig
+                soleraServiceCommunityMultisig
             );
         }
 
@@ -173,11 +174,11 @@ contract HelloWorldDeployer is Script, Utils {
          * First, deploy upgradeable proxy contracts that **will point** to the implementations. Since the implementation contracts are
          * not yet deployed, we give these proxies an empty contract as the initial implementation, to act as if they have no code.
          */
-        helloWorldServiceManagerProxy = HelloWorldServiceManager(
+        soleraServiceManagerProxy = SoleraServiceManager(
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(helloWorldProxyAdmin),
+                    address(soleraServiceProxyAdmin),
                     ""
                 )
             )
@@ -186,7 +187,7 @@ contract HelloWorldDeployer is Script, Utils {
             address(
                 new TransparentUpgradeableProxy(
                     address(emptyContract),
-                    address(helloWorldProxyAdmin),
+                    address(soleraServiceProxyAdmin),
                     ""
                 )
             )
@@ -198,7 +199,7 @@ contract HelloWorldDeployer is Script, Utils {
                 delegationManager
             );
 
-            helloWorldProxyAdmin.upgrade(
+            soleraServiceProxyAdmin.upgrade(
                 TransparentUpgradeableProxy(payable(address(stakeRegistryProxy))),
                 address(stakeRegistryImplementation)
             );
@@ -221,31 +222,31 @@ contract HelloWorldDeployer is Script, Utils {
                 quorumsStrategyParams
             );
 
-            helloWorldProxyAdmin.upgradeAndCall(
+            soleraServiceProxyAdmin.upgradeAndCall(
                 TransparentUpgradeableProxy(
                     payable(address(stakeRegistryProxy))
                 ),
                 address(stakeRegistryImplementation),
                 abi.encodeWithSelector(
                     ECDSAStakeRegistry.initialize.selector,
-                    address(helloWorldServiceManagerProxy),
+                    address(soleraServiceManagerProxy),
                     1,
                     quorum
                 )
             );
         }
 
-        helloWorldServiceManagerImplementation = new HelloWorldServiceManager(
+        soleraServiceManagerImplementation = new SoleraServiceManager(
             address(avsDirectory),
             address(stakeRegistryProxy),
             address(delegationManager)
         );
         // Third, upgrade the proxy contracts to use the correct implementation contracts and initialize them.
-        helloWorldProxyAdmin.upgrade(
+        soleraServiceProxyAdmin.upgrade(
             TransparentUpgradeableProxy(
-                payable(address(helloWorldServiceManagerProxy))
+                payable(address(soleraServiceManagerProxy))
             ),
-            address(helloWorldServiceManagerImplementation)
+            address(soleraServiceManagerImplementation)
         );
 
         // WRITE JSON DATA
@@ -264,13 +265,13 @@ contract HelloWorldDeployer is Script, Utils {
         );
         vm.serializeAddress(
             deployed_addresses,
-            "HelloWorldServiceManagerProxy",
-            address(helloWorldServiceManagerProxy)
+            "SoleraServiceManagerProxy",
+            address(soleraServiceManagerProxy)
         );
         vm.serializeAddress(
             deployed_addresses,
-            "HelloWorldServiceManagerImplementation",
-            address(helloWorldServiceManagerImplementation)
+            "SoleraServiceManagerImplementation",
+            address(soleraServiceManagerImplementation)
         );
         vm.serializeAddress(
             deployed_addresses,
@@ -291,6 +292,6 @@ contract HelloWorldDeployer is Script, Utils {
             deployed_addresses_output
         );
 
-        writeOutput(finalJson, "hello_world_avs_deployment_output");
+        writeOutput(finalJson, "solera_service_avs_deployment_output");
     }
 }
