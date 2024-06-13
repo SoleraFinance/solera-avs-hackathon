@@ -3,26 +3,8 @@ pragma solidity ^0.8.9;
 
 interface ISoleraServiceManager {
     // EVENTS
-    event NewTaskCreated(uint32 indexed taskIndex, Task task);
-
-    event TaskResponded(uint32 indexed taskIndex, Task task, address operator);
-
-    // STRUCTS
-    struct Task {
-        string name;
-        uint32 taskCreatedBlock;
-    }
+    event SubmittedTask(uint256 srcChainId, uint256 dstChainId, address sender, address recipient, uint256 amount);
 
     // FUNCTIONS
-    // NOTE: this function creates new task.
-    function createNewTask(
-        string memory name
-    ) external;
-
-    // NOTE: this function is called by operators to respond to a task.
-    function respondToTask(
-        Task calldata task,
-        uint32 referenceTaskIndex,
-        bytes calldata signature
-    ) external;
+    function submitTask(uint256 _srcChainId, uint256 _dstChainId, address _sender, address _recipient, uint256 _amount) external;
 }

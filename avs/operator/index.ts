@@ -1,10 +1,15 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import * as dotenv from "dotenv";
 import { delegationABI } from "./abis/delegationABI";
-import { contractABI } from './abis/contractABI';
+//import { contractABI } from './abis/contractABI';
 import { registryABI } from './abis/registryABI';
 import { avsDirectoryABI } from './abis/avsDirectoryABI';
 dotenv.config();
+
+const contractABI = [
+    "event SubmittedTask(uint256 srcChainId, uint256 dstChainId, address sender, address recipient, uint256 amount)",
+    "function submitTask(uint256 _srcChainId, uint256 _dstChainId, address _sender, address _recipient, uint256 _amount)"
+];
 
 const provider = new ethers.providers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
@@ -80,15 +85,34 @@ const registerOperator = async () => {
     console.log("Operator registered on AVS successfully");
 };
 
-const monitorNewTasks = async () => {
-    await contract.createNewTask("EigenWorld");
+async function createNewTask(amount: number) {
+    try {
+        // Send a transaction to the createNewTask function
+        const tx = await contract.submitTask(1, 2, "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9", "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9", amount.toString());
 
-    contract.on("NewTaskCreated", async (taskIndex: number, task: any) => {
-        console.log(`New task detected: Hello, ${task.name}`);
-        await signAndRespondToTask(taskIndex, task.taskCreatedBlock, task.name);
+        // Wait for the transaction to be mined
+        const receipt = await tx.wait();
+
+        console.log(`Transaction successful with hash: ${receipt.transactionHash}`);
+    } catch (error) {
+        console.error('Error sending transaction:', error);
+    }
+}
+
+const monitorNewTasks = async () => {
+    await contract.submitTask(1, 2, "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9", "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9", 100);
+
+    contract.on("SubmittedTask", async(srcChainId: BigNumber, dstChainId: BigNumber, sender: string, recipient: string, amount: BigNumber) => {
+        console.log("SubmittedTask", srcChainId.toString(), dstChainId.toString(), sender, recipient, amount.toString());
     });
 
     console.log("Monitoring for new tasks...");
+
+    setInterval(() => {
+        const randomAmount = Math.floor(Math.random() * 1e18);
+        console.log(`Creating new task with amount: ${randomAmount}`);
+        createNewTask(randomAmount);
+    }, 1500);
 };
 
 const main = async () => {
