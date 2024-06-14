@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { ContractEventPayload, ethers } from "ethers";
 import * as dotenv from "dotenv";
 import { delegationABI } from "./abis/delegationABI";
 import { registryABI } from './abis/registryABI';
@@ -15,20 +15,35 @@ const soleraContractABI = [
     "function lockCollateral(uint256 _destinationChainid, address _recipient) payable"
 ];
 
+
+// Create all needed AVS instances
 const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
 const wallet = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const delegationManagerAddress = process.env.DELEGATION_MANAGER_ADDRESS!;
-const contractAddress = process.env.CONTRACT_ADDRESS!;
 const serviceManagerAddress = process.env.SERVICE_MANAGER_ADDRESS!;
 const stakeRegistryAddress = process.env.STAKE_REGISTRY_ADDRESS!;
 const avsDirectoryAddress = process.env.AVS_DIRECTORY_ADDRESS!;
 
 const delegationManager = new ethers.Contract(delegationManagerAddress, delegationABI, wallet);
 const serviceManager = new ethers.Contract(serviceManagerAddress, serviceManagerABI, wallet);
-const contract = new ethers.Contract(contractAddress, soleraContractABI, wallet);
 const registryContract = new ethers.Contract(stakeRegistryAddress, registryABI, wallet);
 const avsDirectory = new ethers.Contract(avsDirectoryAddress, avsDirectoryABI, wallet);
+
+// Create SoleraContract instances for all networks
+const contractAddress = process.env.CONTRACT_ADDRESS!;
+const contract = new ethers.Contract(contractAddress, soleraContractABI, wallet);
+
+const contractAddressPolygon = process.env.POLYGON_CONTRACT_ADDRESS!;
+const providerPolygon = new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL);
+const walletPolygon = new ethers.Wallet(process.env.PRIVATE_KEY!, providerPolygon);
+const contractPolygon = new ethers.Contract(contractAddressPolygon, soleraContractABI, walletPolygon);
+
+const contractAddressArbitrum = process.env.ARBITRUM_CONTRACT_ADDRESS!;
+const providerArbitrum = new ethers.JsonRpcProvider(process.env.ARBITRUM_RPC_URL);
+const walletArbitrum = new ethers.Wallet(process.env.PRIVATE_KEY!, providerArbitrum);
+const contractArbitrum = new ethers.Contract(contractAddressArbitrum, soleraContractABI, walletArbitrum);
+
 
 const registerOperator = async () => {
     const tx1 = await delegationManager.registerAsOperator({
@@ -73,23 +88,23 @@ const registerOperator = async () => {
 };
 
 const monitorNewTasks = async () => {
-    contract.on("NewLock", async(dstChainId: BigInt, recipient: string, amount: BigInt) => {
-        console.log(`New lock: chainId ${dstChainId.toString()}, recipient - ${recipient}, amount - ${amount.toString()}`);
-        // TODO:
-        const srcChainId = 1;
-        const sender = "0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB";
-
-        const tx = await serviceManager.submitTask(srcChainId, dstChainId, sender, recipient, amount);
-        await tx.wait();
-    });
-
-    // TODO: remove
-    serviceManager.on("SubmittedTask", async(srcChainId: BigInt, dstChainId: BigInt, sender: string, recipient: string, amount: BigInt) => {
-        console.log("SubmittedTask", srcChainId.toString(), dstChainId.toString(), sender, recipient, amount.toString());
-    });
+    contract.on("NewLock", handleNewEvent);
+    contractPolygon.on("NewLock", handleNewEvent);
+    contractArbitrum.on("NewLock", handleNewEvent);
 
     console.log("Monitoring for new tasks...");
 };
+
+const handleNewEvent = async(dstChainId: BigInt, recipient: string, amount: BigInt, event: ContractEventPayload) => {
+    const txDetails = await event.getTransaction();
+    const srcChainId = txDetails!.chainId;
+    const sender = txDetails!.from;
+
+    console.log(`New lock: srcChainId - ${srcChainId}, dstChainId - ${dstChainId.toString()}, sender - ${sender}, recipient - ${recipient}, amount - ${amount.toString()}`);
+
+    const tx = await serviceManager.submitTask(srcChainId, dstChainId, sender, recipient, amount);
+    await tx.wait();
+}
 
 const main = async () => {
     await registerOperator();
