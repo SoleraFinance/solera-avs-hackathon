@@ -46,45 +46,53 @@ const contractArbitrum = new ethers.Contract(contractAddressArbitrum, soleraCont
 
 
 const registerOperator = async () => {
-    const tx1 = await delegationManager.registerAsOperator({
-        earningsReceiver: await wallet.address,
-        delegationApprover: "0x0000000000000000000000000000000000000000",
-        stakerOptOutWindowBlocks: 0
-    }, "");
-    await tx1.wait();
-    console.log("Operator registered on EL successfully");
+    if (await delegationManager.isOperator(wallet.address)) {
+        console.log("Operator is already registered on EL");    
+    } else {
+        const tx1 = await delegationManager.registerAsOperator({
+            earningsReceiver: await wallet.address,
+            delegationApprover: "0x0000000000000000000000000000000000000000",
+            stakerOptOutWindowBlocks: 0
+        }, "");
+        await tx1.wait();
+        console.log("Operator registered on EL successfully");
+    }
 
-    const salt = ethers.hexlify(ethers.randomBytes(32));
-    const expiry = Math.floor(Date.now() / 1000) + 3600; // Example expiry, 1 hour from now
+    if (await registryContract.operatorRegistered(wallet.address)) {
+        console.log("Operator is already registered on AVS");
+    } else {
+        const salt = ethers.hexlify(ethers.randomBytes(32));
+        const expiry = Math.floor(Date.now() / 1000) + 3600; // Example expiry, 1 hour from now
 
-    // Define the output structure
-    let operatorSignature = {
-        expiry: expiry,
-        salt: salt,
-        signature: ""
-    };
+        // Define the output structure
+        let operatorSignature = {
+            expiry: expiry,
+            salt: salt,
+            signature: ""
+        };
 
-    // Calculate the digest hash using the avsDirectory's method
-    const digestHash = await avsDirectory.calculateOperatorAVSRegistrationDigestHash(
-        wallet.address, 
-        serviceManagerAddress, 
-        salt, 
-        expiry
-    );
+        // Calculate the digest hash using the avsDirectory's method
+        const digestHash = await avsDirectory.calculateOperatorAVSRegistrationDigestHash(
+            wallet.address, 
+            serviceManagerAddress, 
+            salt, 
+            expiry
+        );
 
-    // Sign the digest hash with the operator's private key
-    const signingKey = new ethers.SigningKey(process.env.PRIVATE_KEY!);
-    const signature = signingKey.sign(digestHash);
-    
-    // Encode the signature in the required format
-    operatorSignature.signature = ethers.Signature.from(signature).serialized;
+        // Sign the digest hash with the operator's private key
+        const signingKey = new ethers.SigningKey(process.env.PRIVATE_KEY!);
+        const signature = signingKey.sign(digestHash);
+        
+        // Encode the signature in the required format
+        operatorSignature.signature = ethers.Signature.from(signature).serialized;
 
-    const tx2 = await registryContract.registerOperatorWithSignature(
-        wallet.address,
-        operatorSignature
-    );
-    await tx2.wait();
-    console.log("Operator registered on AVS successfully");
+        const tx2 = await registryContract.registerOperatorWithSignature(
+            wallet.address,
+            operatorSignature
+        );
+        await tx2.wait();
+        console.log("Operator registered on AVS successfully");
+    }
 };
 
 const monitorNewTasks = async () => {
