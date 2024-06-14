@@ -1,13 +1,27 @@
-![image](https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/64fde64d-c10e-4dfd-8646-e61de34dff98)
+<p align="center">
+<img src="https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/64fde64d-c10e-4dfd-8646-e61de34dff98">
+</p>
 
 
 # Solera AVS
-#### Solera AVS Microhacks Season 1 
+
+EigenLayer AVS Microhacks Season 1 
 
 <br/><br/>
 
 
-### What is Solera?
+## Table of Contents:
+
+[What is Solera](https://github.com/SoleraFinance/solera-avs-hackathon/edit/main/README.md#what-is-solera)
+
+[High Level Flow](https://github.com/SoleraFinance/solera-avs-hackathon/edit/main/README.md#high-level-flow)
+
+[Running the demo](https://github.com/SoleraFinance/solera-avs-hackathon/edit/main/README.md#running-the-demo)
+
+
+<br/><br/>
+
+## What is Solera?
 
 Solera (solera.finance) is an inter-chain stable coin backed by collateralized debt positions (CDP). 
 
@@ -16,6 +30,10 @@ With Solera, you can lock your assets as collateral on any supported chain, and 
 You can also move stable coins from one chain to another without going through bridges, paying fees or taking on additional risks. 
 
 Solera runs as an EigenLayer Active Validated Service (AVS) 
+
+### Is Solera a bridge?
+
+No. While bridges mint wrapped tokens, Solera only operates in native tokens on all chains. The collateral is locked on its native chain while the stable coins are minted natively on the supported blockchains
 
 ### Why do we need another stable coin?
 
@@ -28,3 +46,128 @@ Solera uses a well known CDP based design, that was pioneered by projects like M
 ### What is Solera AVS?
 
 Solera AVS is a decentralized coordination layer backed by Eigen Layer stakers. It is responsible for maintaining a coherent state across multiple blockchains and validate all protocol operations
+
+<br/><br/>
+## High Level Flow
+
+In this demo, we use a very simple example of minting stable coins on one blockchain as a result of locking collateral on another blockchain.
+
+![image](https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/8c05012c-370c-4a16-b09d-168edcd8c750)
+
+We simulate three different blockchains: Ethereum, Polygon and Abitrum using [Foundry](https://github.com/foundry-rs/foundry) and [Hardhat](https://hardhat.org/) testing frameworks. 
+
+The flow looks as follows:
+
+1. User locks collateral by sending a transactions to Solera contract on Polygon blockchain
+2. Solera Service monitors the event emitted by the contract and creates a task for Solera AVS to mint stable coins on the Arbitrum chain 
+3. Operatos receives an event from the AVS, validates it and sends the transaction to Solera contracts on Arbitrum to mint the required amount of stable coins
+4. User receives stable coins on the Arbutrum chain
+   
+> As this flow is only used for demonstration purposes, it has multiple simplifications, including:
+>
+> * In reality, the amount of minted stable coins will depend on the Oracle price for the locked collateral. In this example the ratio is set to 1:1
+> * The actual flow and logic might differ significantly, as the lock collateral and mint stable coins operations are not necessarily peformed in direct conjunction with one another
+
+  ![image](https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/aa2dca69-229e-49ae-85c4-bc700cd30dbc)
+
+
+<br/><br/>
+## Running the demo
+
+### Prerequisites
+
+This demo is based on the Hello world example: https://github.com/Layr-Labs/hello-world-avs
+Dependencies:
+* [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+* [Foundry](https://getfoundry.sh/)
+* [Docker](https://www.docker.com/get-started/)
+* [Hardhat](https://hardhat.org/hardhat-runner/docs/getting-started#quick-start)
+
+Clone this repository and cd to the top folder
+
+### Starting Ethreum emulator
+
+Open a new terminal, cd to the repository folder and run the following command:
+
+`cd avs & make start-chain-with-contracts-deployed`
+
+*In certain cases (MacOS) it might be necessary to run `chmod 777 make start-chain-with-contracts-deployed`*
+
+
+### Starting Arbitrum emulator
+
+Open a new terminal, cd to the repository folder and perform the following steps:
+
+* `cd solera && yarn`
+* Copy .env.example file to .env and fill values for all variables according to the example below
+
+  ```
+  ETH_URL=http://127.0.0.1:8545
+  SERVICE_MANAGER_ADDRESS=0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB
+  OWNER_SERVICE_KEY=0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6
+  ```
+
+* `npx hardhat --config arbitrum.hardhat.config.ts node --port 8546`
+
+### Starting Polygon emulator
+
+Open a new terminal, cd to the repository folder and run the following commands:
+
+* `cd solera`
+* `npx hardhat --config polygon.hardhat.config.ts node --port 8547`
+
+### Deploy Solera contracts
+
+Open a new terminal, cd to the repository folder and run the following commands:
+
+* `cd solera`
+* `npx hardhat --network localhost run scripts/deploy.ts`
+* `npx hardhat --network arbitrum run scripts/deploy.ts`
+* `npx hardhat --network polygon run scripts/deploy.ts`
+
+### Start Solera Operator
+
+Open a new terminal, cd to the repository folder and run the following commands:
+
+*  `cd solera/operator`
+*  Copy .env.anvil to .env
+*  Fill the values in the .env file according to the example below:
+
+  ```
+PRIVATE_KEY=0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
+RPC_URL=http://127.0.0.1:8545
+POLYGON_RPC_URL=http://127.0.0.1:8547
+ARBITRUM_RPC_URL=http://127.0.0.1:8546
+SERVICE_MANAGER_ADDRESS=0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB
+DELEGATION_MANAGER_ADDRESS=0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9
+STAKE_REGISTRY_ADDRESS=0x9E545E3C0baAB3E08CdfD552C960A1050f373042
+AVS_DIRECTORY_ADDRESS=0x5FC8d32690cc91D4c39d9d3abcBD16989F875707
+CONTRACT_ADDRESS=0x70e0bA845a1A0F2DA3359C97E0285013525FFC49
+POLYGON_CONTRACT_ADDRESS=0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+ARBITRUM_CONTRACT_ADDRESS=0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+```
+
+* Run `npx tsx index.ts` (answer Yes if prompted)
+
+### Start Solera Service
+
+Open a new terminal, cd to the repository folder and run the following commands:
+
+`cd solera && npx hardhat --network localhost run service/soleraService.ts`
+
+### Test the demo with sample commands
+
+Open a new terminal, cd to the repository folder and run the following:
+
+* `cd solera`
+* Lock collateral on one chain and see the stable coins minted on another one
+
+```
+npx hardhat --network localhost lockCollateral --contract 0x70e0bA845a1A0F2DA3359C97E0285013525FFC49 --amount 2 --receiver 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --dstchainid 42161
+```
+
+```
+npx hardhat --network localhost lockCollateral --contract 0x70e0bA845a1A0F2DA3359C97E0285013525FFC49 --amount 2 --receiver 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --dstchainid 137
+```
+
+
