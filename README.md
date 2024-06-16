@@ -23,25 +23,25 @@ EigenLayer AVS Microhacks Season 1
 
 ## What is Solera?
 
-Solera (solera.finance) is an inter-chain stable coin backed by collateralized debt positions (CDP). 
+Solera (solera.finance) is an inter-chain stablecoin backed by collateralized debt positions (CDP). 
 
-With Solera, you can lock your assets as collateral on any supported chain, and mint native stable coins on a same or another chain of your choosing.
+With Solera, you can lock your assets as collateral on any supported chain, and mint native stablecoins on a same or another chain of your choosing.
 
-You can also move stable coins from one chain to another without going through bridges, paying fees or taking on additional risks. 
+You can also move stablecoins from one chain to another without going through bridges, paying fees or taking on additional risks. 
 
 Solera runs as an EigenLayer Active Validated Service (AVS) 
 
 ### Is Solera a bridge?
 
-No. While bridges mint wrapped tokens, Solera only operates in native tokens on all chains. The collateral is locked on its native chain while the stable coins are minted natively on the supported blockchains
+No. While bridges mint wrapped tokens, Solera only operates in native tokens on all chains. The collateral is locked on its native chain while the stablecoins are minted natively on the supported blockchains
 
-### Why do we need another stable coin?
+### Why do we need another stablecoin?
 
-In today's world of trading opportunities being scattered across multiple blockchains, one needs to be able to move funds quicly between chains. At the same time, it might not be wise selling your current holdings, especially if they are yield bearing, to take advantage of another trade. Soleras inter-chain capabilities provide an opportunity to borrow stable assets on any chance you want against collateral on any chain you have them. 
+In today's world of trading opportunities being scattered across multiple blockchains, one needs to be able to move funds quickly between chains. At the same time, it might not be wise selling your current holdings, especially if they are yield bearing, to take advantage of another trade. Soleras inter-chain capabilities provide an opportunity to borrow stable assets on any chance you want against collateral on any chain you have them. 
 
 ### How does Solera keep its peg?
 
-Solera uses a well known CDP based design, that was pioneered by projects like MakerDAO (DAI) and Liquty (LUSD) and has proved to be extremely stable even in the most challenging market conditions. When collateral prices are declining, Solera uses an incentivized stability pool to cover the positions that drop below the minimal collateralization ratios. Additional mechanisms, such as debt socialization and direct redemption are utilized to maintain the peg at all times.
+Solera uses a well known CDP based design that was pioneered by projects like MakerDAO (DAI) and Liquty (LUSD) and has proved to be extremely stable even in the most challenging market conditions. When collateral prices are declining, Solera uses an incentivized stability pool to cover the positions that drop below the minimal collateralization ratios. Additional mechanisms, such as debt socialization and direct redemption are utilized to maintain the peg at all times.
 
 ### What is Solera AVS?
 
@@ -50,7 +50,7 @@ Solera AVS is a decentralized coordination layer backed by Eigen Layer stakers. 
 <br/><br/>
 ## High Level Flow
 
-In this demo, we use a very simple example of minting stable coins on one blockchain as a result of locking collateral on another blockchain.
+In this demo, we use a very simple example of minting stablecoins on one blockchain as a result of locking collateral on another blockchain.
 
 ![image](https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/8c05012c-370c-4a16-b09d-168edcd8c750)
 
@@ -59,14 +59,14 @@ We simulate three different blockchains: Ethereum, Polygon and Abitrum using [Fo
 The flow looks as follows:
 
 1. User locks collateral by sending a transactions to Solera contract on Polygon blockchain
-2. Solera Service monitors the event emitted by the contract and creates a task for Solera AVS to mint stable coins on the Arbitrum chain 
-3. Operatos receives an event from the AVS, validates it and sends the transaction to Solera contracts on Arbitrum to mint the required amount of stable coins
-4. User receives stable coins on the Arbutrum chain
+2. Solera Service monitors the event emitted by the contract and creates a task for Solera AVS to mint stablecoins on the Arbitrum chain 
+3. Operatos receives an event from the AVS, validates it and sends the transaction to Solera contracts on Arbitrum to mint the required amount of stablecoins
+4. User receives stablecoins on the Arbutrum chain
    
 > As this flow is only used for demonstration purposes, it has multiple simplifications, including:
 >
-> * In reality, the amount of minted stable coins will depend on the Oracle price for the locked collateral. In this example the ratio is set to 1:1
-> * The actual flow and logic might differ significantly, as the lock collateral and mint stable coins operations are not necessarily peformed in direct conjunction with one another
+> * In reality, the amount of minted stablecoins will depend on the Oracle price for the locked collateral. In this example the ratio is set to 1:1
+> * The actual flow and logic might differ significantly, as the lock collateral and mint stablecoins operations are not necessarily performed in direct conjunction with one another
 
   ![image](https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/aa2dca69-229e-49ae-85c4-bc700cd30dbc)
 
@@ -85,7 +85,7 @@ Dependencies:
 
 Clone this repository and cd to the top folder
 
-### Starting Ethreum emulator
+### Starting Ethereum emulator
 
 Open a new terminal, cd to the repository folder and run the following command:
 
@@ -160,7 +160,7 @@ Open a new terminal, cd to the repository folder and run the following commands:
 Open a new terminal, cd to the repository folder and run the following:
 
 * `cd solera`
-* Lock collateral on one chain and see the stable coins minted on another one
+* Lock collateral on one chain and see the stablecoins minted on another one
 
 ```
 npx hardhat --network localhost lockCollateral --contract 0x70e0bA845a1A0F2DA3359C97E0285013525FFC49 --amount 2 --receiver 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --dstchainid 42161
