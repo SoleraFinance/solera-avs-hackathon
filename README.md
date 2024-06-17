@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/64fde64d-c10e-4dfd-8646-e61de34dff98">
+   <img src="https://github.com/SoleraFinance/solera-avs-hackathon/assets/2127896/d6a21e53-113c-4c9c-9dae-733bd84e34ce">
 </p>
 
 
