@@ -58,10 +58,10 @@ We simulate three different blockchains: Ethereum, Polygon and Abitrum using [Fo
 
 The flow looks as follows:
 
-1. User locks collateral by sending a transactions to Solera contract on Polygon blockchain
-2. Solera Service monitors the event emitted by the contract and creates a task for Solera AVS to mint stablecoins on the Arbitrum chain 
-3. Operatos receives an event from the AVS, validates it and sends the transaction to Solera contracts on Arbitrum to mint the required amount of stablecoins
-4. User receives stablecoins on the Arbutrum chain
+1. User locks collateral by sending a transactions to Solera contract on Arbitrum blockchain
+2. Operator monitors the event emitted by the contract, validates it  and creates a task for Solera AVS to mint stablecoins on the Polygon chain 
+3. Solera Service receives an event from the AVS, and sends the transaction to Solera contracts on Polygon to mint the required amount of stablecoins
+4. User receives stablecoins on the Polygon chain
    
 > As this flow is only used for demonstration purposes, it has multiple simplifications, including:
 >
