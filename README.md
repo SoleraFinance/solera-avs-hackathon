@@ -37,7 +37,7 @@ No. While bridges mint wrapped tokens, Solera only operates in native tokens on 
 
 ### Why do we need another stablecoin?
 
-In today's world of trading opportunities being scattered across multiple blockchains, one needs to be able to move funds quickly between chains. At the same time, it might not be wise selling your current holdings, especially if they are yield bearing, to take advantage of another trade. Soleras inter-chain capabilities provide an opportunity to borrow stable assets on any chance you want against collateral on any chain you have them. 
+In today's world of trading opportunities being scattered across multiple blockchains, one needs to be able to move funds quickly between chains. At the same time, it might not be wise selling your current holdings, especially if they are yield bearing, to take advantage of another trade. Solera's inter-chain capabilities provide an opportunity to borrow stable assets on any chain you want against collateral on any chain you have them. 
 
 ### How does Solera keep its peg?
 
@@ -45,7 +45,7 @@ Solera uses a well known CDP based design that was pioneered by projects like Ma
 
 ### What is Solera AVS?
 
-Solera AVS is a decentralized coordination layer backed by Eigen Layer stakers. It is responsible for maintaining a coherent state across multiple blockchains and validate all protocol operations
+Solera AVS is a decentralized coordination layer backed by EigenLayer stakers. It is responsible for maintaining a coherent state across multiple blockchains and validate all protocol operations
 
 <br/><br/>
 ## High Level Flow
